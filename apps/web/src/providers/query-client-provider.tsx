@@ -7,14 +7,24 @@ import {
   QueryClientProvider as TanstackQueryClientProvider,
 } from "@tanstack/react-query"
 
-import { QUERY_CLIENT_CONFIG } from "@/constants/query"
-
 interface QueryClientProviderProps {
   children: ReactNode
 }
 
 export function QueryClientProvider({ children }: QueryClientProviderProps) {
-  const [queryClient] = useState(() => new QueryClient(QUERY_CLIENT_CONFIG))
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 60 * 1000,
+            refetchOnWindowFocus: false,
+            refetchIntervalInBackground: false,
+            retry: 1,
+          },
+        },
+      }),
+  )
 
   return (
     <TanstackQueryClientProvider client={queryClient}>
