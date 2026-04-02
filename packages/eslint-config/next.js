@@ -20,6 +20,7 @@ export const nextJsConfig = [
       ...pluginReact.configs.flat.recommended.languageOptions,
       globals: {
         ...globals.serviceworker,
+        ...globals.browser,
       },
     },
   },
@@ -32,13 +33,10 @@ export const nextJsConfig = [
       ...pluginNext.configs["core-web-vitals"].rules,
     },
   },
+  pluginReactHooks.configs.flat["recommended-latest"],
   {
-    plugins: {
-      "react-hooks": pluginReactHooks,
-    },
     settings: { react: { version: "detect" } },
     rules: {
-      ...pluginReactHooks.configs.recommended.rules,
       "react/react-in-jsx-scope": "off",
       "react/prop-types": "off",
     },

@@ -20,13 +20,10 @@ export const config = [
       },
     },
   },
+  pluginReactHooks.configs.flat["recommended-latest"],
   {
-    plugins: {
-      "react-hooks": pluginReactHooks,
-    },
     settings: { react: { version: "detect" } },
     rules: {
-      ...pluginReactHooks.configs.recommended.rules,
       "react/react-in-jsx-scope": "off",
       "react/prop-types": "off",
     },

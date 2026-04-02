@@ -34,7 +34,6 @@ apps/
       providers/              # React 컨텍스트 프로바이더 (theme, react-query)
       services/               # 서비스 래퍼 (logger, storage)
       stores/                 # Zustand 스토어
-      constants/              # 상수 및 설정 값
 packages/
   ui/                         # 공유 UI 컴포넌트 (shadcn/ui 기반)
     src/
