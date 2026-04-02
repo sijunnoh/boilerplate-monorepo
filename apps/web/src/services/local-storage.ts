@@ -28,7 +28,12 @@ class LocalStorage {
   getItem<T>(key: string): T | null {
     if (this._isAvailable) {
       const item = window.localStorage.getItem(key)
-      return item ? JSON.parse(item) : null
+      if (!item) return null
+      try {
+        return JSON.parse(item) as T
+      } catch {
+        return null
+      }
     }
     return null
   }
