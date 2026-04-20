@@ -14,8 +14,8 @@
   "dependencies": {
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "lucide-react": "^0.513.0",
-    "radix-ui": "^1.4.2",
+    "lucide-react": "^1.8.0",
+    "radix-ui": "^1.4.3",
     "tailwind-merge": "^3.5.0"
   },
   "peerDependencies": {
@@ -25,10 +25,10 @@
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@types/node": "^25.5.0",
+    "@types/node": "^25.6.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "eslint": "^9.39.1",
-    "typescript": "5.9.2"
+    "eslint": "^9.39.4",
+    "typescript": "6.0.3"
   }
 }
