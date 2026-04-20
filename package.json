@@ -15,7 +15,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "eslint --fix --max-warnings 0",
+      "eslint --fix --max-warnings 0 --flag v10_config_lookup_from_file",
       "prettier --write"
     ],
     "*.{json,md,css}": [

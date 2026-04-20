@@ -29,10 +29,11 @@ apps/
       app/                    # App Router 페이지 및 레이아웃 (Server Component만 허용)
       components/             # 재사용 가능한 공통 UI 컴포넌트
       features/               # 기능(도메인)별 클라이언트 컴포넌트
-      hooks/                  # 커스텀 React 훅
-      lib/                    # 유틸리티 (API 클라이언트 등)
+      hooks/                  # 앱 전역 공용 훅 (도메인 전용 훅은 features/{name}/hooks/에 co-locate)
+      core/                   # 비즈니스 무관 공통 기반 (logger, storage, api 등) — 다른 프로젝트에 그대로 이식 가능
+      lib/                    # 이 서비스의 비즈니스 유틸 (도메인 규칙이 섞여 이식 어려운 코드)
+      _remote/                # 외부 API 호출/쿼리 모듈 (도메인별 디렉토리)
       providers/              # React 컨텍스트 프로바이더 (theme, react-query)
-      services/               # 서비스 래퍼 (logger, storage)
       stores/                 # Zustand 스토어
 packages/
   ui/                         # 공유 UI 컴포넌트 (shadcn/ui 기반)
@@ -59,15 +60,45 @@ pnpm ui:add <name>    # shadcn/ui 컴포넌트 추가 (packages/ui/src/에 생�
 
 ### 서버/클라이언트 컴포넌트 분리
 
-`src/app/` 내 파일은 반드시 Server Component를 유지합니다. page.tsx나 layout.tsx에 `'use client'`를 추가하지 않습니다. 클라이언트 로직은 `src/features/` 또는 `src/components/`에 별도 컴포넌트로 분리합니다.
+**멘탈 모델: 페이지는 features를 조합하여 구성한다.**
+
+`src/app/` 내 파일은 반드시 Server Component를 유지합니다. page.tsx나 layout.tsx에 `'use client'`를 추가하지 않습니다. 라우트별 클라이언트 조립은 같은 라우트 폴더의 `_components/`에 배치합니다 (언더스코어 prefix는 Next.js private folder 규약으로 라우팅 대상에서 제외).
+
+- **`app/foo/page.tsx`** — Server Component. 데이터 조회 등 서버 전용 작업 후 `_components/`의 클라이언트 쉘을 import
+- **`app/foo/_components/`** — 해당 라우트 전용 Client Component. 이 layer가 `src/features/`의 도메인 컴포넌트를 조립해 화면을 구성
+- **`src/features/{name}/`** — 여러 라우트가 공유 가능한 도메인 단위 Client Component 및 훅
 
 ### features 디렉토리
 
 `src/features/`는 기능(도메인) 단위로 클라이언트 컴포넌트를 관리합니다.
 
-- `src/app/`의 Server Component에서 import하여 사용하는 Client Component의 주요 위치
+- 라우트의 `_components/`가 여기에 있는 도메인 컴포넌트/훅을 import해 페이지를 조립
 - 여러 기능에서 공통으로 재사용하는 UI는 `src/components/`에, 특정 기능에 종속된 UI는 `src/features/`에 배치
+- 도메인 전용 훅은 해당 feature 하위에 co-locate합니다 (예: `src/features/auth/hooks/use-session.ts`). 도메인과 무관한 앱 전역 훅만 `src/hooks/`에 둡니다
 - 예시: `src/features/auth/login-form.tsx`, `src/features/user/user-profile-card.tsx`
+
+### core / lib / \_remote 구분
+
+세 디렉토리 모두 "유틸 비슷한 코드"가 들어가는 곳이지만 책임이 다릅니다. 새 파일을 어디 둘지 헷갈리면 아래 기준으로 판단합니다.
+
+- **`src/core/`** — 비즈니스와 무관한 프로젝트 공통 기반 레이어
+  - 다른 서비스에 그대로 복붙해도 동작하는 수준의 순수 유틸/래퍼
+  - 예: `logger`, `local-storage`, `session-storage`, `api`(ky 인스턴스), `store`(상태 컨테이너 팩토리)
+  - 도메인 단어(예: `user`, `order`)가 식별자에 등장하면 안 됨
+  - ESLint 예외: `no-console`, `no-restricted-globals` 미적용 (브라우저 API를 감싸는 역할)
+
+- **`src/lib/`** — 이 서비스의 비즈니스 유틸
+  - 도메인 규칙이 섞여 있어 다른 프로젝트로 그대로 옮기면 의미가 깨지는 코드
+  - 예: 가격 계산, 도메인 포맷팅(`format-order-status` 등), 비즈니스 검증 함수
+  - 컴포넌트가 아닌 순수 함수 위주 (컴포넌트는 `features/` 또는 `components/`)
+
+- **`src/_remote/`** — 외부 API 호출/쿼리 모듈
+  - 도메인별 fetcher / TanStack Query 정의 (ky 인스턴스는 `core/api/`에서 가져다 씀)
+  - 백엔드 리소스 구조를 따라 디렉토리를 분할 (예: `_remote/auth/`, `_remote/order/`)
+  - 컴포넌트에서는 `lib/`을 거치지 않고 `_remote/`의 훅/함수를 직접 호출
+  - 언더스코어 prefix는 "프론트가 단독으로 결정하지 못하는 영역(백엔드 계약에 종속)"임을 시각적으로 구분하려는 의도
+
+판단 흐름: **외부 통신이면 `_remote/` → 비즈니스 로직이면 `lib/` → 어느 프로젝트에서도 똑같이 쓸 수 있는 인프라면 `core/`**
 
 ### 컴포넌트 분리 원칙
 
@@ -107,11 +138,11 @@ props에 따른 거대한 `if/else` 분기를 지양합니다. `isAdmin`, `isGue
 
 ### 로깅
 
-`@/services/logger`의 `logger`를 사용합니다. 직접적인 `console.*` 호출은 ESLint에 의해 차단됩니다.
+`@/core/logger/logger`의 `logger`를 사용합니다. 직접적인 `console.*` 호출은 ESLint에 의해 차단됩니다.
 
 ### 스토리지
 
-`@/services/local-storage`의 `localStorage` 또는 `@/services/session-storage`의 `sessionStorage`를 사용합니다. 브라우저 API 직접 접근은 ESLint `no-restricted-globals`에 의해 차단됩니다.
+`@/core/local-storage/local-storage`의 `localStorage` 또는 `@/core/session-storage/session-storage`의 `sessionStorage`를 사용합니다. 브라우저 API 직접 접근은 ESLint `no-restricted-globals`에 의해 차단됩니다.
 
 ### 스타일링
 

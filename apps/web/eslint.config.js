@@ -10,18 +10,18 @@ export default [
         {
           name: "localStorage",
           message:
-            "Use localStorage from '@/services/local-storage' instead of direct localStorage access.",
+            "Use localStorage from '@/core/local-storage/local-storage' instead of direct localStorage access.",
         },
         {
           name: "sessionStorage",
           message:
-            "Use sessionStorage from '@/services/session-storage' instead of direct sessionStorage access.",
+            "Use sessionStorage from '@/core/session-storage/session-storage' instead of direct sessionStorage access.",
         },
       ],
     },
   },
   {
-    files: ["src/services/**/*.ts"],
+    files: ["src/core/**/*.ts"],
     rules: {
       "no-console": "off",
       "no-restricted-globals": "off",
